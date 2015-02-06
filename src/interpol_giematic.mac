@@ -1,0 +1,201 @@
+/*               COPYRIGHT NOTICE
+
+Copyright (C) 2015
+Authors:
+- Jose Antonio Quevedo <joseantonio.quevedo@gmail.com>
+- Pablo Psichalis <pablo.psrz@gmail.com>
+- Jose María Navarro <navarrojose4321@gmail.com>
+
+This program is free software; you can redistribute
+it and/or modify it under the terms of the
+GNU General Public License as published by
+the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it
+will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details at
+http://www.gnu.org/copyleft/gpl.html
+*/
+
+/*************************/
+/*
+Description: this package contains some interpolation techniques as:
+- interpolacionLineal(): Linear interpolation,
+- extrapolarMedia(): Linear extrapolation,
+- interpolCubicHermite(): Cubic Hermite Spline,
+- interpolClampedEnd(): cubic spline interpolation with end conditions - Clamped End.
+
+*/
+/*************************/
+
+/*
+Devuelve true si las coordenadas X de la lista de puntos p está en orden creciente.
+*/
+esListaOrdenada(p):=block([],
+  esOrdenada:true,
+  for i:1 thru length(p)-1 step 1 do(
+    if (p[i][1]>=p[i+1][1]) then esOrdenada:false
+  ),
+  return(esOrdenada)
+);
+
+/***********************/
+
+/* Devuelve la función correspondiente a la recta que pasa por el punto[x,y] con pendiente m.
+*/
+rectaPuntoPendiente(p,pendiente):=block([],
+    salida:p[2]+pendiente*(x-p[1]),
+    return (salida)
+);
+
+/***********************/
+/*
+Devuelve la función correspondiente la recta que pasa por los puntos [x1,y1] y [x2,y2].
+*/
+
+recta(x1,y1,x2,y2):=((x-x1)*(y2-y1))/(x2-x1)+y1;
+
+/***********************/
+
+/*
+Devuelve el polinomio de interpolación lineal que pasa por los puntos incluidos en la lista de puntos p.
+*/
+interpolacionLineal(p):=block([],
+    salida:0,
+    if (esListaOrdenada(p)) then(
+       for i:1 thru length(p)-1 step 1 do(
+       	   salida:salida + charfun(x>=p[i][1] and x<=p[i+1][1])*recta(p[i][1],p[i][2],p[i+1][1],p[i+1][2])
+       )
+    ),
+    return(salida)
+);
+
+
+/***********************/
+/*
+Devuelve el polinomio de extrapolación correspondiente que pasa por el último punto de lista de puntos p
+cuya pendiente es la media aritmética de los últimos h tramos.
+*/
+
+extrapolarMedia(p,h,xMax):=block([],
+  salida:0,
+  n:length(p)-1, /*Numero de tramos*/
+  if (esListaOrdenada(p)) then(
+    if (h>n) then (
+      print("Warning: h>n. Usando h=n"),
+      h:n
+    ),
+    /*m es media aritmetica de las pendientes que es lo que vamos
+    a usar para la pendiente del ultimo trozo*/
+    m:(1/n)*sum((p[i+1][2]-p[i][2])/ (p[i+1][1]-p[i][1]),i,n-h,n),
+        salida:charfun(x>=p[n+1][1] and x<p[n+1][1]+xMax)*rectaPuntoPendiente(p[n+1],m)
+  )else(
+    print("ERROR: p no es lista ordenada de puntos.")
+  ),
+  return (salida)
+);
+
+/*************************/
+
+/*
+Devuelve el polinomio de interpolación lineal  correspondiente a la lista de puntos p sumado al polinomio de extrapolación lineal
+correspondiente que pasa por el último punto de lista de puntos p cuya pendiente es la media aritmética de los últimos h tramos.
+*/
+interpolacionExtendida(p,h,xMax):=block([],
+  return (interpolacionLineal(p)+extrapolarMedia(p,h,xMax))
+);
+
+
+/*************************/
+
+/*
+Devuelve el polinomio de interpolación cúbica de Hermite correspondiente a la lista de puntos lpuntos y a la lista de derivadas lderivadas.
+*/
+interpolCubicHermite(lpuntos, lderivadas):=block([],
+
+  polinomio:0,
+  if (esListaOrdenada(lpuntos)) then (
+    if (length(lpuntos)=length(lderivadas))then (
+      numTramos: length(lpuntos)-1,
+
+      /*Se definen los polinomios*/
+      for i:1 thru numTramos step 1 do(
+        P[i]:a[i]*x^3+b[i]*x^2+c[i]*x+d[i],
+      	DP[i]:3*a[i]*x^2+2*b[i]*x+c[i]
+      ),
+
+      listaEcuaciones:makelist(ev(P[i],x=lpuntos[i][1]) = lpuntos[i][2],i, 1, numTramos),
+      listaEcuaciones:append(listaEcuaciones, makelist(ev(P[i],x=lpuntos[i+1][1]) = lpuntos[i+1][2],i, 1, numTramos)),
+      listaEcuaciones:append(listaEcuaciones, makelist(ev(DP[i],x=lpuntos[i][1]) = lderivadas[i],i, 1, numTramos)),
+      listaEcuaciones:append(listaEcuaciones, makelist(ev(DP[i], x=lpuntos[i+1][1]) = lderivadas[i+1],i, 1, numTramos)),
+
+      listaIncognitas:makelist(a[i], i, 1, numTramos),
+      listaIncognitas:append(listaIncognitas, makelist(b[i], i, 1, numTramos)),
+      listaIncognitas:append(listaIncognitas, makelist(c[i], i, 1, numTramos)),
+      listaIncognitas:append(listaIncognitas, makelist(d[i], i, 1, numTramos)),
+
+      solucion:solve(listaEcuaciones, listaIncognitas),
+
+      for i:1 thru numTramos step 1 do (
+        polinomio:polinomio + subst(solucion,P[i]) * charfun(x>=lpuntos[i][1] and x<lpuntos[i+1][1])
+      )
+    )else
+	print("Error: Las longitudes de las listas de entrada no coinciden.")
+  )else
+    print("Error: Los puntos no están ordenados."),
+
+  return(polinomio)
+
+);
+
+/*************************/
+
+/*
+Devuelve el polinomio de interpolación cúbica Clamped-End correspondiente a la lista de puntos lpuntos y a las derivadas de los extremos d1 y dn.
+*/
+interpolClampedEnd(lpuntos, d1, dn):=block([],
+
+  polinomio:0,
+  if(esListaOrdenada(lpuntos)=true) then (
+
+    numTramos: length(lpuntos)-1,
+
+    /*Se definen los polinomios*/
+    for i:1 thru numTramos step 1 do(
+
+      P[i]:a[i]*x^3+b[i]*x^2+c[i]*x+d[i],
+      DP[i]:3*a[i]*x^2+2*b[i]*x+c[i],
+      D2P[i]:6*a[i]*x+2*b[i]
+
+    ),
+
+    listaEcuaciones:[ev(DP[1], x=lpuntos[1][1])=d1, ev(DP[numTramos], x=lpuntos[length(lpuntos)][1])=dn],
+    listaEcuaciones:append(listaEcuaciones, makelist(ev(P[i],x=lpuntos[i][1]) = lpuntos[i][2],i, 1, numTramos)),
+    listaEcuaciones:append(listaEcuaciones, makelist(ev(P[i],x=lpuntos[i+1][1]) = lpuntos[i+1][2],i, 1, numTramos)),
+    listaEcuaciones:append(listaEcuaciones, makelist(ev(DP[i],x=lpuntos[i+1][1]) = ev(DP[i+1],x=lpuntos[i+1][1]),i, 1, numTramos-1)),
+    listaEcuaciones:append(listaEcuaciones, makelist(ev(D2P[i], x=lpuntos[i+1][1]) = ev(D2P[i+1],x=lpuntos[i+1][1]),i, 1, numTramos-1)),
+
+    listaIncognitas:makelist(a[i], i, 1, numTramos),
+    listaIncognitas:append(listaIncognitas, makelist(b[i], i, 1, numTramos)),
+    listaIncognitas:append(listaIncognitas, makelist(c[i], i, 1, numTramos)),
+    listaIncognitas:append(listaIncognitas, makelist(d[i], i, 1, numTramos)),
+
+    solucion:solve(listaEcuaciones, listaIncognitas),
+
+    for i:1 thru numTramos step 1 do (
+      polinomio:polinomio + subst(solucion,P[i]) * charfun(x>=lpuntos[i][1] and x<lpuntos[i+1][1])
+    )
+  )
+  else
+    print("Error: Los puntos no están ordenados."),
+  return(polinomio)
+
+);
+
+/*************************/
+
+
+
