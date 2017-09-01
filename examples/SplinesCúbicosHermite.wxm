@@ -1,0 +1,101 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 13.04.2 ] */
+
+/* [wxMaxima: title   start ]
+2. Interpolación por Splines Cúbicos de Hermite:
+Diseño del perfil de un coche
+   [wxMaxima: title   end   ] */
+
+/* [wxMaxima: comment start ]
+Cargamos la librería interpol_giematic 
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+load(interpol_giematic);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Instrucciones de instalación:
+https://github.com/Interpol-Giematic/interpol/wiki/Instalacion
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Se analiza la gráfica con los tramos que se quieren interpolar y se tiene que:
+
+x = 0   -> Se necesita que la altura sea 0 y la pendiente 1
+x = 1.2 -> Se necesita que la altura sea 0.5 y la pendiente 0.5
+x = 2   -> Se necesita que la altura sea 1 y la pendiente 0.5
+x = 3   -> Se necesita que la altura sea 1.05 y la pendiente es -1/3
+x = 3.8 -> Se necesita que la altura sea 0.6 y la pendiente -2/3
+x = 4.5 -> Se necesita que la altura sea 0 y la pendiente -3.5
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Como disponemos de 6 puntos, hay 6-1=5 intervalos de la forma [x_i, x_(i+1)]
+//Aclaración: x_i = "x"Sub"i"
+
+, y en cada uno de ellos se quiere definir un polinomio de tercer grado.
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Lista de puntos
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+listapuntos:[[0,0],[1.2,0.5],[2,1],[3,1.05],[3.8,0.6],[4.5,0]];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Lista de derivadas, que se corresponden con los puntos
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+listaderivadas:[1,0.5,0.5,-1/3,-2/3,-3.5];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Para hallar estos polinomios, se requiere que se cumplan estas 20 ecuaciones:
+
+P1(0)=0, P1(1.2)=0.5,
+P2(1.2)=0.5, P2(2)=1,
+P3(2)=1, P3(3)=1.05,
+P4(3)=1.05, P4(3.8)=0.6,
+P5(3.8)=0.6, P5(4.5)=0,
+
+DP1(0)=1, DP1(1.2)=0.5,
+DP2(1.2)=0.5,
+
+DP2(2)=0.5, DP3(2)=0.5,
+DP3(3)=-1/3, DP4(3)=-1/3,
+DP4(3.8)=-2/3, DP5(3.8)=-2/3, DP5(4.5)=-3.5;
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+La función interpolCubicHermite toma las listas de puntos y derivadas,
+imponiendo todas estas condiciones automáticamente y construyendo el polinomio interpolador que las cumple:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+interpolCubicHermite(listapuntos,listaderivadas);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Se obtiene el polinomio interpolador S:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+S(x):=(-(5150*x^3)/1029+(62035*x^2)/1029-(83018*x)/343+111276/343)*charfun(x>=3.8 and x<4.5)+((25*x^3)/128-(845*x^2)/384+(2917*x)/384-4613/640)*charfun(x>=3 and x<3.8)+(x^3/15-(11*x^2)/12+(101*x)/30-13/5)*
+charfun(x>=2 and x<3)+(-(25*x^3)/64+(15*x^2)/8-(37*x)/16+5/4)*charfun(x>=1.2 and x<2)+((25*x^3)/54-(25*x^2)/24+x)*charfun(x>=0 and x<1.2);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Resultado:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+plot2d([S], [x,0,4.5], [y,0,4.5],
+ [plot_format, gnuplot])$
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$

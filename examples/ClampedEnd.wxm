@@ -1,0 +1,102 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 13.04.2 ] */
+
+/* [wxMaxima: title   start ]
+3. Interpolación Clamped End:
+Problema del trazado de una carretera
+   [wxMaxima: title   end   ] */
+
+/* [wxMaxima: comment start ]
+Cargamos la librería interpol_giematic 
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+load(interpol_giematic);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Instrucciones de instalación:
+https://github.com/Interpol-Giematic/interpol/wiki/Instalacion
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Datos de una carretera que se va a trazar:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Lista de puntos con las coordenadas de las localizaciones por las cuales se quiere 
+que pase la carretera:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+localizaciones:[[0,0],[1.2,2.5],[2,4],[3,2.05],[3.8,1.6],[4.5,0]];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Direcciones de entrada
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+dir_entrada:1; dir_salida:-2;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Cálculo del Polinomio Interpolador:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+interpolClampedEnd(localizaciones,dir_entrada,dir_salida);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Resultado:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+plot2d([%], [x,0,4.5],
+ [plot_format, gnuplot])$
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+EXTRA: Trazado de carreteras aleatorias
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Lista[x,y] aleatoria (desordenada):
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+L1 : makelist([random(99),random(99)],n,1,20);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+interpolClampedEnd(L1, 1, -1);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Como nos indica el mensaje que muestra la función, 
+la lista [[x1,y1] , [x2,y2] , ... , [xn,yn]] debe cumplir que x1 < x2 < ... < xn
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Lista[x,y] ordenada, con coordenada "y" aleatoria:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+L2 : makelist([x*5,random(15)], x,1,20);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+interpolClampedEnd(L2, 0, -5);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Trazado de la carretera aleatoria resultante:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+wxplot2d([%], [x,5,45])$
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$

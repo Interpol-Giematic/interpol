@@ -1,0 +1,109 @@
+/* [wxMaxima batch file version 1] [ DO NOT EDIT BY HAND! ]*/
+/* [ Created with wxMaxima version 13.04.2 ] */
+
+/* [wxMaxima: title   start ]
+1. Interpolación lineal: 
+Problema de la población
+   [wxMaxima: title   end   ] */
+
+/* [wxMaxima: comment start ]
+Cargamos la librería interpol_giematic 
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+load(interpol_giematic);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Instrucciones de instalación:
+https://github.com/Interpol-Giematic/interpol/wiki/Instalacion
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: comment start ]
+Se tienen los datos oficiales de la población de la ciudad de Madrid entre 2000 y 2010, 
+obtenidos de la página oficial del ayuntamiento, y se quiere elaborar una gráfica con ellos 
+para comprobar la tendencia y realizar estimaciones.
+
+Se construye la lista de la siguiente forma
+Lista de puntos: [x,y] = [años transcurridos desde el 2000, población]
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+p:[[0,2903903],[2,3043535],[4,3162304],[6,3205334],[8,3238208],[10,3284110]];
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Calculamos el polinomio interpolador:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+G(x) := interpolacionLineal(p);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+G(x);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Obtenemos la población en 2003 (= 2000 + 3):
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+G(3), numer;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Nos basamos en los datos de los últimos 3 años, siendo 2010 el último año del que se disponen datos.
+Con esto, podemos intentar predecir la población de Madrid en 2015, realizando extrapolación:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+H(x) := extrapolarMedia(p,3,10);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+H(x);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Estimación de la población en 2015:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+H(15), numer;
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+La función H obtenida anteriormente representaba la predicción a partir de 2010.
+
+Para obtener una función que incluya la predicción a partir de 2010 y los datos que se tienen de 2000 a 2010,
+basta con utilizar interpolacionExtendida()
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+I(x) := interpolacionExtendida(p,3,10);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: input   start ] */
+I(x);
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Examinamos en la gráfica la posible tendencia de la población:
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+plot2d([I], [x,0,15],
+ [plot_format, gnuplot])$
+/* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Estimación en un año concreto (2015):
+   [wxMaxima: comment end   ] */
+
+/* [wxMaxima: input   start ] */
+I(15), numer;
+/* [wxMaxima: input   end   ] */
+
+/* Maxima can't load/batch files which end with a comment! */
+"Created with wxMaxima"$
